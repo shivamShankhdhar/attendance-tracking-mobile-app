@@ -1,0 +1,450 @@
+================================================================
+WORKPLACE JOIN FLOW — INVITE LINK BASED
+================================================================
+Last Updated: 2026-09-30
+App name:     Bizora
+App scheme:   bizora://
+
+================================================================
+WHAT ALREADY EXISTS IN THE CODEBASE
+================================================================
+
+BACKEND (all routes under /api/workplace)
+─────────────────────────────────────────
+  ✅ GET  /join/:token              → public preview (no auth needed)
+  ✅ POST /join-landing             → alternate public preview via body
+  ✅ POST /join-preview             → authenticated preview
+  ✅ POST /join-requests            → submit a join request
+  ✅ GET  /my-join-requests         → employee lists their own requests
+  ✅ GET  /my-join-requests/:id     → employee gets one request (with latestRequest)
+  ✅ POST /my-join-requests/:id/cancel → employee cancels pending request
+  ✅ GET  /:workplaceId/join-requests      → admin lists all requests
+  ✅ POST /:workplaceId/join-requests/:id/approve
+  ✅ POST /:workplaceId/join-requests/:id/reject  (with optional rejectionReason)
+  ✅ GET  /:workplaceId/join-qr            → generate/fetch QR token
+  ✅ POST /:workplaceId/join-qr/rotate     → rotate the token
+  ✅ POST /:workplaceId/invite-link        → alias of join-qr for link clients
+
+  Model: WorkplaceJoinRequest
+    Fields: workplaceId, userId, name, email, employeeCode, avatarUrl,
+            note, status (PENDING|APPROVED|REJECTED|CANCELLED),
+            reviewedBy, reviewedAt, rejectionReason, createdAt, updatedAt
+
+  DB Constraints:
+    ✅ Only one PENDING request per user per workplace (partial unique index)
+    ✅ Only one PENDING request per employeeCode per workplace
+
+FRONTEND — Routes & Screens
+────────────────────────────
+  ✅ /join                  → join.tsx — workplace preview + request + status
+  ✅ /join/[token]          → join/[token].tsx — IMPLEMENTED (saves token to
+                              AsyncStorage + redirects to /join?token=<TOKEN>)
+  ✅ /join-requests         → join-requests.tsx → JoinRequestsScreen (admin=true)
+  ✅ /my-join-requests      → my-join-requests.tsx → JoinRequestsScreen (admin=false)
+  ✅ JoinRequestsScreen     — shared screen for both admin and employee list views
+                              ↳ Status filter chips: ALL | PENDING | APPROVED | REJECTED | CANCELLED
+                              ↳ Admin: Approve / Reject with optional reason + optimistic update
+                              ↳ Employee: "View details & status" / "Open workplace" per row
+  ✅ JoinStatusTracker      — step tracker component shown on join.tsx
+  ✅ WorkplaceInstallLanding — web landing page for non-installed users (web-only)
+
+FRONTEND — Services
+────────────────────
+  ✅ workplaceLinks.ts
+      - getWorkplaceLink(token, native?)  → https://bizora.app/join/<token>
+                                            or bizora://join/<token>
+      - savePendingJoin / getPendingJoin / clearPendingJoin
+        (AsyncStorage, 7-day expiry — survives sign-in)
+      - saveTrackedJoin / getTrackedJoin / clearTrackedJoin
+        (per-user, stores { requestId, token } after request is sent)
+      - parseWorkplaceInvite(input)
+        (parses https, http, bizora://, attendance:// links and bare tokens)
+      - PLAY_STORE_URL / APP_STORE_URL (env vars, currently empty strings)
+
+  ✅ joinNavigation.ts
+      - openJoinedWorkplace(userId, workplaceId, requestId?, token?)
+        Refreshes profile → finds active membership → selectWorkplace()
+        → clears tracked + pending join storage
+
+  ✅ join.tsx (the main join screen) already handles:
+      - Reads token from URL param OR falls back to AsyncStorage
+      - Auto-redirects to sign-in if not authenticated (preserving token)
+      - Shows workplace preview card (name, description, admin, member count, address)
+      - Shows JoinStatusTracker if a request exists
+      - Polls every 5 s while status is PENDING
+      - Auto-opens workplace when status becomes APPROVED + alreadyMember
+      - Optional note to admin (200 chars)
+      - Manual link paste fallback when no token in URL
+      - "My join requests" link at the bottom
+      - Handles requestId param (resume by request ID, not token)
+      - Web-only: shows WorkplaceInstallLanding before sign-in
+
+FRONTEND — Background Components (mounted in _layout.tsx)
+──────────────────────────────────────────────────────────
+  ✅ JoinIntegrations.native.tsx
+      - Branch.io deferred deep link handler (fires when EXPO_PUBLIC_BRANCH_KEY is set)
+        Recovers workplace_token from Branch params after a fresh install
+        → savePendingJoin(token) → navigate to /join?token=<TOKEN>
+      - Push notification setup:
+        → Requests permission on sign-in
+        → Registers Expo push token with backend via POST /auth/push-token
+        → Handles notification taps:
+            JOIN_REQUESTED  → /join-requests?workplaceId=<id>  (admin)
+            JOIN_APPROVED   → /join?requestId=<id>             (employee)
+            JOIN_REJECTED   → /join?requestId=<id>             (employee)
+
+  ✅ JoinRequestMonitor.tsx  (startup recovery — already implemented)
+      - On every app foreground: reads getTrackedJoin(userId)
+      - Polls GET /my-join-requests/:requestId every 5 s
+      - On APPROVED: calls openJoinedWorkplace() → showSuccess banner → navigate to /
+      - On REJECTED: clears tracking → showError banner with rejection reason
+      - On CANCELLED: clears tracking silently
+
+================================================================
+WHAT IS INCOMPLETE / MISSING (THINGS TO PLAN / BUILD)
+================================================================
+
+──────────────────────────────────────────────────────────────
+1. DEEP LINK ENTRY POINT  ✅ IMPLEMENTED
+──────────────────────────────────────────────────────────────
+  frontend/src/app/join/[token].tsx
+
+  What it does:
+    - Reads `token` from the dynamic route segment.
+    - Calls savePendingJoin(token) to AsyncStorage immediately.
+    - Sets ['pending-join'] in the React Query cache.
+    - Calls router.replace('/join?token=<TOKEN>') so the user
+      can't back-navigate into the raw /join/<TOKEN> URL.
+    - Renders JoinWorkplaceRoute inline during the async save
+      to avoid a blank flash.
+
+  Why this matters:
+    The token is now persisted to AsyncStorage BEFORE any
+    sign-in redirect happens. When an unauthenticated user
+    arrives via deep link → gets sent to / for Google sign-in
+    → the token survives in storage → join.tsx picks it up
+    via getPendingJoin() after sign-in completes.
+
+──────────────────────────────────────────────────────────────
+2. UNIVERSAL LINKS / APP LINKS CONFIGURATION
+──────────────────────────────────────────────────────────────
+  iOS — apple-app-site-association (AASA)
+    Must be hosted at: https://bizora.app/.well-known/apple-app-site-association
+    Must include your Team ID + Bundle ID.
+    In app.json/app.config.ts: add "associatedDomains": ["applinks:bizora.app"].
+
+  Android — assetlinks.json
+    Must be hosted at: https://bizora.app/.well-known/assetlinks.json
+    Must include your SHA-256 fingerprint + package name.
+    In app.json: android.intentFilters must declare the bizora.app domain.
+
+  Custom scheme fallback (bizora://)
+    Already declared in app.config.ts (verify "scheme": "bizora" is set).
+    Works without domain verification; used as fallback and for QR codes.
+
+  Files to create/update:
+    - public/.well-known/apple-app-site-association
+    - public/.well-known/assetlinks.json
+    - app.json / app.config.ts  (associatedDomains, intentFilters)
+
+──────────────────────────────────────────────────────────────
+3. DEFERRED DEEP LINK (POST-INSTALL TOKEN RECOVERY)
+   ✅ BRANCH.IO INTEGRATION ALREADY IN CODE
+──────────────────────────────────────────────────────────────
+  The code in JoinIntegrations.native.tsx already imports
+  react-native-branch and subscribes to branch.subscribe().
+  It reads params.workplace_token from Branch link params and
+  calls savePendingJoin(token) → routes to /join.
+
+  The integration is CONDITIONALLY ACTIVE:
+    if (!process.env.EXPO_PUBLIC_BRANCH_KEY) return;
+  So it only activates when the env var is provided.
+
+  ⚠️  TO ACTIVATE (config values needed from you):
+    1. Create a Branch.io account and app at dashboard.branch.io
+    2. Add to frontend/.env:
+         EXPO_PUBLIC_BRANCH_KEY=key_live_xxxxxxxxxxxxxxxxx
+    3. Add to app.config.ts / app.json:
+         ios.associatedDomains: ["applinks:bizora.app"]
+         android.intentFilters for bizora.app
+    4. On Branch dashboard:
+         - Set iOS URI scheme: bizora://
+         - Set Android package name
+         - Set link domain: bizora.app (or use app.link subdomain)
+         - Add custom link data: { workplace_token: "<TOKEN>" }
+           (your invite-link generator must create Branch links,
+            not plain https links, for deferred linking to work)
+    5. Update EXPO_PUBLIC_PLAY_STORE_URL and
+       EXPO_PUBLIC_APP_STORE_URL in .env (currently empty strings)
+
+  NOTE: Plain https://bizora.app/join/<TOKEN> links work perfectly
+  for installed-app users (Universal Links / App Links). Branch is
+  only needed for the post-install token recovery use case.
+
+──────────────────────────────────────────────────────────────
+4. ADMIN — INVITE LINK / QR SHARING UI
+──────────────────────────────────────────────────────────────
+  Current state:
+    Backend: GET /:workplaceId/join-qr returns a token.
+    Frontend: No UI exists to display, copy, or share the invite link.
+
+  What needs to happen:
+    In the admin's Workplace Details / Settings screen, add a section:
+      ┌─────────────────────────────────────────────────────┐
+      │  Invite Members                                     │
+      │  ─────────────────────────────────────────────────  │
+      │  Share this link with your team:                    │
+      │  https://bizora.app/join/xK9mP2qR  [ Copy ] [ Share]│
+      │                                                     │
+      │  [ Show QR Code ]   [ Rotate Link ]                 │
+      │                                                     │
+      │  [ View Join Requests  (3 pending) ]                │
+      └─────────────────────────────────────────────────────┘
+
+    Behaviors:
+      - "Copy" → Clipboard.setString(link) with success feedback.
+      - "Share" → Share.share({ url: link, message: ... }).
+      - "Show QR Code" → renders QR in a modal (expo-qrcode or react-native-qrcode-svg).
+      - "Rotate Link" → calls POST /:workplaceId/join-qr/rotate.
+        Show a warning: "Old links will stop working."
+      - "View Join Requests" → navigates to /join-requests?workplaceId=<id>.
+        Badge shows count of PENDING requests.
+
+  Files to modify:
+    - src/screens/EmployerDashboard.tsx  (or a new InviteMembersCard component)
+
+──────────────────────────────────────────────────────────────
+5. ADMIN — JOIN REQUESTS SCREEN ENTRY POINT
+──────────────────────────────────────────────────────────────
+  Current state:
+    /join-requests route exists but doesn't receive workplaceId.
+    JoinRequestsScreen reads workplaceId from useLocalSearchParams —
+    so it works only if the route is opened with ?workplaceId=<id>.
+
+  What needs to happen:
+    Ensure the admin can reach /join-requests?workplaceId=<id> from:
+      a. The "View Join Requests" button in the Invite Members section (above).
+      b. A tab or menu item inside the Employer Dashboard.
+
+  Files to verify/modify:
+    - src/app/join-requests.tsx          (ensure it passes workplaceId)
+    - src/screens/EmployerDashboard.tsx  (add navigation entry point)
+
+──────────────────────────────────────────────────────────────
+6. PUSH NOTIFICATIONS
+   ✅ FRONTEND SIDE FULLY IMPLEMENTED
+   ⚠️  BACKEND SIDE: VERIFY / IMPLEMENT
+──────────────────────────────────────────────────────────────
+  Frontend (JoinIntegrations.native.tsx) — DONE:
+    ✅ Requests push permission on sign-in
+    ✅ Registers Expo push token via POST /auth/push-token
+    ✅ Routes notification taps:
+        JOIN_REQUESTED  → /join-requests?workplaceId=<id>  (admin)
+        JOIN_APPROVED   → /join?requestId=<id>             (employee)
+        JOIN_REJECTED   → /join?requestId=<id>             (employee)
+    ✅ Checks for last notification on app resume
+
+  Backend — VERIFY these 3 triggers exist in workplace.service.ts:
+    ⚠️  approveJoinRequest  → push to employee (JOIN_APPROVED + data.requestId)
+    ⚠️  rejectJoinRequest   → push to employee (JOIN_REJECTED + data.requestId)
+    ⚠️  submitJoinRequest   → push to admin    (JOIN_REQUESTED + data.workplaceId)
+
+  Files to check / modify:
+    - backend/src/modules/workplace/workplace.service.ts
+    - backend/src/modules/notification/  (push sending utility)
+
+──────────────────────────────────────────────────────────────
+7. EMPLOYEE — STATUS TRACKER RECOVERY ON APP RESTART
+   ✅ FULLY IMPLEMENTED (JoinRequestMonitor.tsx)
+──────────────────────────────────────────────────────────────
+  JoinRequestMonitor is mounted in _layout.tsx and runs silently
+  in the background on every app foreground.
+
+  What it does:
+    - Reads getTrackedJoin(userId) from AsyncStorage
+    - Polls GET /my-join-requests/:requestId every 5 s
+    - On APPROVED:
+        → openJoinedWorkplace() (refreshes profile, selects workplace)
+        → showSuccess("Your request to join <Workplace> was approved!")
+        → router.replace('/')
+    - On REJECTED:
+        → clearTrackedJoin(userId)
+        → showError("Your request was not approved. <reason>")
+    - On CANCELLED:
+        → clearTrackedJoin(userId) silently
+    - Skipped while app is locked (MPIN / biometric lock screen active)
+
+──────────────────────────────────────────────────────────────
+8. EDGE CASES & GUARD RAILS (NO SEPARATE SCREENS NEEDED)
+──────────────────────────────────────────────────────────────
+
+  a. EXPIRED / INVALID TOKEN
+     Backend: publicJoinPreview already returns an error for bad tokens.
+     Frontend: join.tsx shows the error card with "Try again".
+     ✅ Already handled — no extra work needed.
+
+  b. ALREADY A MEMBER
+     Backend: previewJoin returns alreadyMember: true.
+     Frontend: join.tsx shows "Open workplace" instead of request button.
+     ✅ Already handled.
+
+  c. ALREADY HAS A PENDING REQUEST
+     DB constraint: partial unique index prevents duplicate PENDING.
+     Backend: returns the existing pending request.
+     Frontend: join.tsx shows JoinStatusTracker instead of request form.
+     ✅ Already handled.
+
+  d. COMPETING ADMIN ACTIONS (two admins approve/reject at once)
+     Backend: approveJoinRequest is atomic (verify with findOneAndUpdate
+     + status filter so a REJECTED request cannot be re-approved).
+     ⚠️  VERIFY: workplace.service.ts — ensure the approve mutation
+     checks status === 'PENDING' before acting.
+
+  e. LINK ROTATION
+     When admin rotates the token, old links return a 404/error from
+     publicJoinPreview. Frontend shows the error card.
+     ✅ Handled by existing error display.
+
+  f. REQUEST OWNERSHIP
+     GET /my-join-requests/:id should verify the request belongs to
+     req.user.userId before returning it.
+     ⚠️  VERIFY: workplace.service.ts getMyJoinRequest() ownership check.
+
+================================================================
+USER-FACING FLOW (END-TO-END SUMMARY)
+================================================================
+
+ADMIN SIDE
+──────────
+  1. Admin opens Employer Dashboard → "Invite Members" card.
+  2. App calls GET /:workplaceId/join-qr → gets invite token.
+  3. Admin sees the invite link + Copy / Share / QR buttons.
+  4. Admin shares the link via WhatsApp / Email / SMS / QR scan.
+  5. Admin can tap "View Join Requests (N pending)" anytime →
+     lands on /join-requests?workplaceId=<id>.
+  6. Requests show with status badges:
+       🟡 Pending  |  ✅ Approved  |  ❌ Rejected  |  🚫 Cancelled
+  7. Admin taps a PENDING row → Approve or Reject dialog appears.
+  8. On Approve: employee is added; push notification sent to employee.
+  9. On Reject:  employee notified; reason stored and shown to employee.
+
+EMPLOYEE SIDE
+─────────────
+  1. Employee receives invite link (e.g. https://bizora.app/join/xK9mP2qR).
+  2a. App not installed:
+       → Link opens App Store / Play Store.
+       → Employee installs the app.
+       → [Deferred deep link] app opens and recovers the token.
+  2b. App installed:
+       → Universal Link / App Link opens app directly.
+       → Expo Router fires /join/[token].tsx.
+       → Token saved to AsyncStorage (savePendingJoin).
+       → Redirects to /join?token=<TOKEN>.
+  3. If not signed in → redirected to / (sign-in screen).
+       Token is preserved in AsyncStorage across sign-in.
+  4. After Google sign-in → /join is re-entered with token from storage.
+  5. Workplace Preview screen loads:
+       ┌──────────────────────────────────────────────┐
+       │  🏢 Acme Corp                                │
+       │  "Track attendance effortlessly"             │
+       │  👤 Admin:   John Doe                        │
+       │  👥 Members: 24 active members               │
+       │  📍 Mumbai, India                            │
+       │                                              │
+       │  Joining as Ravi Kumar (ravi@corp.com)       │
+       │  [Note to admin (optional)]                  │
+       │  [ Request to Join ]                         │
+       └──────────────────────────────────────────────┘
+  6. Employee taps "Request to Join".
+     → POST /join-requests → requestId returned.
+     → saveTrackedJoin(userId, { requestId, token }).
+     → JoinStatusTracker replaces the form:
+
+       ● Sent    ──●─────────────────────
+       ● Pending ────────●───────────────
+       ○ Decision ──────────────────○───
+
+     → Polls every 5 s while PENDING.
+     → "You can close the app — we'll update you when your admin responds."
+  7. Employee can close the app and return later via:
+       a. /my-join-requests → lists all their requests with status badges.
+          Tapping "View details & status" re-opens the tracker on /join.
+       b. Push notification (when admin acts).
+       c. On app restart: startup check detects tracked join →
+          shows banner or auto-opens if APPROVED.
+  8. On APPROVED:
+       → push notification + status updates to ✅.
+       → join.tsx auto-calls openJoinedWorkplace().
+       → Profile refreshed, membership selected, navigated to dashboard.
+  9. On REJECTED:
+       → push notification + status updates to ❌.
+       → Rejection reason shown on tracker screen.
+
+================================================================
+FILES TO CREATE / MODIFY (IMPLEMENTATION CHECKLIST)
+================================================================
+
+  CREATE
+  ──────
+  [ ] frontend/src/app/join/[token].tsx
+        Read token param → savePendingJoin → redirect to /join?token=<TOKEN>
+
+  [ ] public/.well-known/apple-app-site-association
+        iOS Universal Links config (requires Team ID + Bundle ID)
+
+  [ ] public/.well-known/assetlinks.json
+        Android App Links config (requires SHA-256 + package name)
+
+  [ ] frontend/src/components/InviteMembersCard.tsx  (or inline in EmployerDashboard)
+        Link display, Copy, Share, QR modal, Rotate, "View requests" button
+
+  MODIFY
+  ──────
+  [ ] frontend/src/app/app.json / app.config.ts
+        Add "associatedDomains" for iOS, intentFilters for Android
+
+  [ ] frontend/src/screens/EmployerDashboard.tsx
+        Add InviteMembersCard section, add navigation to join-requests
+
+  [ ] backend/src/modules/workplace/workplace.service.ts
+        - approveJoinRequest: verify status===PENDING guard (race condition)
+        - getMyJoinRequest: verify ownership before returning
+        - approveJoinRequest: trigger push to employee
+        - rejectJoinRequest: trigger push to employee
+        - submitJoinRequest: trigger push to admin
+
+  [ ] frontend/src/app/_layout.tsx  (or new startup hook)
+        On authenticated startup: getTrackedJoin → fetch status → banner / auto-open
+
+  CONFIGURE (ENV VALUES NEEDED FROM YOU)
+  ───────────────────────────────────────
+  [ ] EXPO_PUBLIC_PLAY_STORE_URL   (currently empty)
+  [ ] EXPO_PUBLIC_APP_STORE_URL    (currently empty)
+  [ ] Deferred deep link strategy  (Branch.io vs custom server)
+  [ ] Apple Team ID + Bundle ID    (for AASA)
+  [ ] Android SHA-256 fingerprint  (for assetlinks.json)
+  [ ] Expo push notification setup (if not already done)
+
+================================================================
+WHAT IS NOT NEEDED (ALREADY DONE)
+================================================================
+  ✅ Backend join request CRUD
+  ✅ Token generation and resolution
+  ✅ Workplace preview API (public + authenticated)
+  ✅ Join status model with all 4 statuses
+  ✅ Partial unique index preventing duplicate pending requests
+  ✅ join.tsx — full preview + request + tracker + auto-open logic
+  ✅ JoinRequestsScreen — admin + employee list with filters
+  ✅ JoinStatusTracker component
+  ✅ savePendingJoin / getPendingJoin — survives sign-in (7-day TTL)
+  ✅ saveTrackedJoin / getTrackedJoin — per-user request tracking
+  ✅ parseWorkplaceInvite — handles all URL formats + bare tokens
+  ✅ openJoinedWorkplace — atomic profile refresh + workplace switch
+  ✅ Manual link paste fallback in join.tsx
+  ✅ "My join requests" list accessible from join.tsx
+  ✅ Admin approve/reject with optional reason + optimistic UI
+  ✅ 5-second polling while PENDING on join.tsx
+
+================================================================
+END OF FLOW DOCUMENT
+================================================================

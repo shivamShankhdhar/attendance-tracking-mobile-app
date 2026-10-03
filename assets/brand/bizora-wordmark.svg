@@ -1,0 +1,15 @@
+<svg width="220" height="48" viewBox="0 0 220 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 0)">
+    <rect x="2" y="2" width="44" height="44" rx="13" fill="#3B5724"/>
+    <rect x="12" y="11" width="5.5" height="26" rx="2.75" fill="#FFFFFF"/>
+    <path d="M15 14H26C29.8 14 32.5 16.2 32.5 19C32.5 21.8 29.8 24 26 24H15" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15 24H27.5C31.5 24 34.5 26.3 34.5 29.5C34.5 32.7 31.5 34 27.5 34H15" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="15" cy="14" r="2.5" fill="#FFFFFF"/>
+    <circle cx="15" cy="24" r="2.5" fill="#FFFFFF"/>
+    <circle cx="15" cy="34" r="2.5" fill="#FFFFFF"/>
+    <circle cx="26" cy="19" r="2.5" fill="#E5A93C"/>
+    <circle cx="20" cy="24" r="2.8" fill="#E5A93C"/>
+  </g>
+  <text x="58" y="28" fill="#1B2210" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5">Bizora</text>
+  <text x="58" y="40" fill="#5F6D52" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="700" letter-spacing="1">WORKFORCE ATTENDANCE OS</text>
+</svg>

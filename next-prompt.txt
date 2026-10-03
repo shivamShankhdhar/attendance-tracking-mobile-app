@@ -1,0 +1,12 @@
+Prompts to execute;- 
+
+3. why i am getting future dates in the selection in the attendance can i retrieve the future dates attendance?
+4. the workplace things in the home can be scrolled but the top header should not and also the badge is not looking good on the notifications and also there is too much gap after it do one thing remove welcome shivam just put the name there and in the right the avatr of the user nad then left to it theme changer and notifications and in the workplace things at the place of the avatar currently place the qr button as big as the avatr is and belo it just the code just remove the qr from that row and increase the text size for code
+5. and the think like invite or adding should be in the one screens only if you are providing any buttons for those features make sure navigate to the dedicated screen with the further actions if the action needs the model open then open that after navigating to that screen it should work like that
+6. i am getting data not synced , last synced just now hoe this works
+7. I want the reall notifications in the model not the dummy one and alo remove the test push notofications and active tab should have white text
+10. after going to the web app 
+11. if the user is coming from the invite link and its not logged in show the message on login screen like first you need to sign in and then only will accept the invitation
+12. remove the my joinings option in the joining screen its not for the employees remove that .
+13. option to update the home screen by dragging the screen to the bottom 
+the request and approval should work like real time the states should be excahnged immediately

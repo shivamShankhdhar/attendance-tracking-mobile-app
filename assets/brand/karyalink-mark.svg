@@ -1,0 +1,27 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer squircle badge in brand olive #5B692D -->
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="#5B692D"/>
+  
+  <!-- Left Operations Stem (Pillar of "K") -->
+  <rect x="12" y="11" width="6" height="26" rx="3" fill="#FFFFFF"/>
+
+  <!-- Top Arm Link to Franchise/Distributor Node -->
+  <line x1="16" y1="24" x2="31" y2="17" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Bottom Arm Link to Retailer/Outlet Node -->
+  <line x1="16" y1="24" x2="31" y2="31" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Junction Joiner -->
+  <circle cx="16" cy="24" r="3.2" fill="#FFFFFF"/>
+
+  <!-- Top Node (Franchise / Distributor Hub) -->
+  <circle cx="31" cy="17" r="5.5" fill="#FFFFFF"/>
+  <circle cx="31" cy="17" r="2.5" fill="#5B692D"/>
+
+  <!-- Bottom Node (Retailer / Outlet Hub) -->
+  <circle cx="31" cy="31" r="5.5" fill="#FFFFFF"/>
+  <circle cx="31" cy="31" r="2.5" fill="#5B692D"/>
+
+  <!-- Center Synchronization / Order Golden Pip -->
+  <circle cx="20" cy="24" r="2.6" fill="#E5A93C"/>
+</svg>

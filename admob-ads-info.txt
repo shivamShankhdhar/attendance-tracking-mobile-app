@@ -1,0 +1,16 @@
+App ID (Android)
+ca-app-pub-1113302487630583~1600554870
+
+Ad Unit IDs
+
+App Open Ads: ca-app-pub-1113302487630583/5909504970
+
+Banner Ads: ca-app-pub-1113302487630583/6170355279
+
+Interstitial Ads (Text/Image/Media): ca-app-pub-1113302487630583/6411058695
+
+Interstitial Ads (Video): ca-app-pub-1113302487630583/4255754368
+
+Native Advanced Ads: ca-app-pub-1113302487630583/2164939347
+
+Rewarded Interstitial Ads: ca-app-pub-1113302487630583/5097977027

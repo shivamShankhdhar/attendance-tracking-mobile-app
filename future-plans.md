@@ -1,0 +1,1 @@
+if i also add the retailer,distributor thing in the sam floe and both t=can mark attendances for theei employees how it will be the ui create the tab how it will looks like and the other screens and how much features can i add so that it should be more helpful to manage the things

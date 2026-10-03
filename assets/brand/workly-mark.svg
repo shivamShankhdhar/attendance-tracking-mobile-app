@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <!-- Rounded Olive Tile -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="#5B692D" />
+  
+  <!-- 4 Subtle QR Scan Corners -->
+  <path d="M28 44V32C28 29.7909 29.7909 28 32 28H44" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M84 28H96C98.2091 28 100 29.7909 100 32V44" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M28 84V96C28 98.2091 29.7909 100 32 100H44" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M84 100H96C98.2091 100 100 98.2091 100 96V84" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Understated Approval Check Mark -->
+  <path d="M40 66L56 82L88 48" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

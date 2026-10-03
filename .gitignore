@@ -1,0 +1,82 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
+
+# Release signing (never commit these!)
+keystore/*.keystore
+keystore/*.jks
+google-services.json
+android/app/google-services.json
+
+# ==============================
+# Large binary / build artifacts
+# ==============================
+
+# Android App Bundles & APKs
+*.aab
+*.apk
+
+# iOS builds
+*.ipa
+*.xcarchive
+
+# Video files (too large for GitHub)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Build output folders
+builds/
+android/app/build/
+android/.gradle/
+ios/build/
+ios/Pods/
+dist/
+
+# Store asset bundles & videos (keep only images/metadata)
+store-assets/bundle/
+store-assets/video/*.mp4
+store-assets/video/*.mov

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 200" width="280" height="200" fill="none">
+  <!-- Soft background shrub/cloud shapes in warm sage tint -->
+  <circle cx="218" cy="142" r="26" fill="#EDF3DF" />
+  <circle cx="236" cy="148" r="18" fill="#EDF3DF" />
+  <circle cx="226" cy="96" r="18" fill="#EDF3DF" opacity="0.7" />
+  <circle cx="240" cy="102" r="13" fill="#EDF3DF" opacity="0.6" />
+  <circle cx="88" cy="122" r="22" fill="#EDF3DF" opacity="0.6" />
+
+  <!-- Ground Baseline -->
+  <line x1="24" y1="165" x2="256" y2="165" stroke="#5B692D" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Accent dash floating above roof -->
+  <line x1="147" y1="52" x2="163" y2="52" stroke="#5B692D" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Tree on the left -->
+  <g id="tree">
+    <line x1="54" y1="165" x2="54" y2="112" stroke="#5B692D" stroke-width="2.5" stroke-linecap="round" />
+    <ellipse cx="54" cy="110" rx="16" ry="26" fill="#EDF3DF" stroke="#5B692D" stroke-width="2.5" />
+    <line x1="54" y1="95" x2="54" y2="127" stroke="#5B692D" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Shop Building Facade -->
+  <rect x="88" y="84" width="134" height="81" rx="2" fill="#FFFFFF" stroke="#5B692D" stroke-width="2.5" />
+
+  <!-- Roof Cornice / Ledge -->
+  <rect x="92" y="64" width="126" height="8" rx="2" fill="#FFFFFF" stroke="#5B692D" stroke-width="2.5" />
+
+  <!-- Striped Scalloped Awning -->
+  <g id="awning">
+    <!-- Stripe 1 (Olive) -->
+    <path d="M94 72 L86 96 Q86 106 97 106 Q108 106 108 96 L113 72 Z" fill="#5B692D" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 2 (White) -->
+    <path d="M113 72 L108 96 Q108 106 120 106 Q130 106 130 96 L133 72 Z" fill="#FFFFFF" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 3 (Olive) -->
+    <path d="M133 72 L130 96 Q130 106 142 106 Q153 106 153 96 L153 72 Z" fill="#5B692D" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 4 (White) -->
+    <path d="M153 72 L153 96 Q153 106 165 106 Q176 106 176 96 L174 72 Z" fill="#FFFFFF" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 5 (Olive) -->
+    <path d="M174 72 L176 96 Q176 106 187 106 Q198 106 198 96 L194 72 Z" fill="#5B692D" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 6 (White) -->
+    <path d="M194 72 L198 96 Q198 106 209 106 Q219 106 219 96 L214 72 Z" fill="#FFFFFF" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+    <!-- Stripe 7 (Olive outer corner) -->
+    <path d="M214 72 L219 96 Q219 106 226 106 Q231 106 226 96 L218 72 Z" fill="#5B692D" stroke="#5B692D" stroke-width="2" stroke-linejoin="round" />
+  </g>
+
+  <!-- Shop Window -->
+  <g id="window">
+    <rect x="102" y="114" width="50" height="40" rx="2" fill="#F7F9F2" stroke="#5B692D" stroke-width="2.5" />
+    <line x1="127" y1="114" x2="127" y2="154" stroke="#5B692D" stroke-width="2" />
+    <!-- Window glare lines -->
+    <line x1="108" y1="144" x2="120" y2="122" stroke="#E0E8D2" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="133" y1="144" x2="145" y2="122" stroke="#E0E8D2" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Shop Door -->
+  <g id="door">
+    <rect x="166" y="114" width="32" height="51" rx="1.5" fill="#5B692D" stroke="#5B692D" stroke-width="2" />
+    <rect x="170" y="118" width="24" height="43" rx="1" fill="none" stroke="#6C7D38" stroke-width="1.5" opacity="0.6" />
+    <circle cx="172" cy="140" r="2.5" fill="#FFFFFF" />
+  </g>
+</svg>
