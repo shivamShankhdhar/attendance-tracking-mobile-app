@@ -1,7 +1,15 @@
 import { formatFriendlyDate } from './attendance';
 import { Platform, Share } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+let PDFDocument: any, rgb: any, StandardFonts: any;
+if (Platform.OS !== 'web') {
+  try {
+    const pdfLib = require('pdf-lib');
+    PDFDocument = pdfLib.PDFDocument;
+    rgb = pdfLib.rgb;
+    StandardFonts = pdfLib.StandardFonts;
+  } catch (_e) {}
+}
 import * as XLSX from 'xlsx';
 import { ApiReportsResponse } from '../services/attendanceApi';
 import { APP_NAME } from '../constants/app';
